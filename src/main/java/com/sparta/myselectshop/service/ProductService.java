@@ -5,20 +5,26 @@ import com.sparta.myselectshop.dto.ProductRequestDto;
 import com.sparta.myselectshop.dto.ProductResponseDto;
 import com.sparta.myselectshop.entity.Product;
 import com.sparta.myselectshop.entity.User;
+import com.sparta.myselectshop.entity.UserRoleEnum;
 import com.sparta.myselectshop.naver.dto.ItemDto;
 import com.sparta.myselectshop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+// 페이징 테스트 데이터 삽입
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
-    private static final int MIN_MY_PRICE = 100;
+    public static final int MIN_MY_PRICE = 100;
     public ProductResponseDto createProduct(ProductRequestDto requestDto, User user) {
         Product product = productRepository.save(new Product(requestDto, user));
         return new ProductResponseDto(product);
@@ -44,14 +50,24 @@ public class ProductService {
     //SHIFTSHIFT 단축키로 프로젝트 전체검색가능
     //ctrl+R 단축키로 Run
 
-    public List<ProductResponseDto> getProducts(User user) {
-        List<Product> productList = productRepository.findAllByUser(user);// .var 템플릿으로 타입변수생성 단축키워드활용
-        List<ProductResponseDto> responseDtoList = new ArrayList<>();
-        //iter 템플릿으로 향상for문생성 단축키워드활용
-        for (Product product : productList) {
-            responseDtoList.add(new ProductResponseDto(product));
+    public Page<ProductResponseDto> getProducts(User user, int page, int size, String sortBy, boolean isAsc) {
+        // 정렬, 페이징 처리위한 페이저블객체
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 유저 권한 확인
+        UserRoleEnum userRoleEnum = user.getRole();
+
+        Page<Product> productList;
+        //
+        if(userRoleEnum == UserRoleEnum.USER){
+            productList = productRepository.findAllByUser(user, pageable);
+        } else{
+            productList = productRepository.findAll(pageable);
         }
-        return responseDtoList;
+
+        return productList.map(ProductResponseDto::new);
     }
 
     @Transactional
