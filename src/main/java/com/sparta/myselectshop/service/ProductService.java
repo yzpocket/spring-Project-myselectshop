@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -22,8 +25,8 @@ public class ProductService {
     @Transactional
     public ProductResponseDto updateProduct(Long id, ProductMypriceRequestDto requestDto) {
         int myprice = requestDto.getMyprice();
-        if(myprice < MIN_MY_PRICE){
-            throw new IllegalArgumentException("유효하지 않은 관심 가격입니다. 최소 "+MIN_MY_PRICE+"원 이상으로 등록해주세요.");
+        if (myprice < MIN_MY_PRICE) {
+            throw new IllegalArgumentException("유효하지 않은 관심 가격입니다. 최소 " + MIN_MY_PRICE + " 원 이상으로 설정해 주세요.");
         }
 
         Product product = productRepository.findById(id).orElseThrow(() ->
@@ -33,5 +36,19 @@ public class ProductService {
         product.update(requestDto);
 
         return new ProductResponseDto(product);
+    }
+
+    //CMD+E 단축키로 이전파일 살펴볼수있음
+    //SHIFTSHIFT 단축키로 프로젝트 전체검색가능
+    //ctrl+R 단축키로 Run
+
+    public List<ProductResponseDto> getProducts() {
+        List<Product> productList = productRepository.findAll();// .var 템플릿으로 타입변수생성 단축키워드활용
+        List<ProductResponseDto> responseDtoList = new ArrayList<>();
+        //iter 템플릿으로 향상for문생성 단축키워드활용
+        for (Product product : productList) {
+            responseDtoList.add(new ProductResponseDto(product));
+        }
+        return responseDtoList;
     }
 }
