@@ -4,6 +4,7 @@ import com.sparta.myselectshop.dto.ProductMypriceRequestDto;
 import com.sparta.myselectshop.dto.ProductRequestDto;
 import com.sparta.myselectshop.dto.ProductResponseDto;
 import com.sparta.myselectshop.entity.Product;
+import com.sparta.myselectshop.entity.User;
 import com.sparta.myselectshop.naver.dto.ItemDto;
 import com.sparta.myselectshop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,8 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
     private static final int MIN_MY_PRICE = 100;
-    public ProductResponseDto createProduct(ProductRequestDto requestDto) {
-        Product product = productRepository.save(new Product(requestDto));
+    public ProductResponseDto createProduct(ProductRequestDto requestDto, User user) {
+        Product product = productRepository.save(new Product(requestDto, user));
         return new ProductResponseDto(product);
     }
 
@@ -43,8 +44,8 @@ public class ProductService {
     //SHIFTSHIFT 단축키로 프로젝트 전체검색가능
     //ctrl+R 단축키로 Run
 
-    public List<ProductResponseDto> getProducts() {
-        List<Product> productList = productRepository.findAll();// .var 템플릿으로 타입변수생성 단축키워드활용
+    public List<ProductResponseDto> getProducts(User user) {
+        List<Product> productList = productRepository.findAllByUser(user);// .var 템플릿으로 타입변수생성 단축키워드활용
         List<ProductResponseDto> responseDtoList = new ArrayList<>();
         //iter 템플릿으로 향상for문생성 단축키워드활용
         for (Product product : productList) {
@@ -59,5 +60,14 @@ public class ProductService {
                 new NullPointerException("해당 상품은 존재하지 않습니다.")
         );
         product.updateByItemDto(itemDto);
+    }
+    // ADMIN 모든 상품 조회
+    public List<ProductResponseDto> getProducts() {
+        List<Product> productList = productRepository.findAll();
+        List<ProductResponseDto> responseDtoList = new ArrayList<>();
+        for (Product product : productList) {
+            responseDtoList.add(new ProductResponseDto(product));
+        }
+        return responseDtoList;
     }
 }

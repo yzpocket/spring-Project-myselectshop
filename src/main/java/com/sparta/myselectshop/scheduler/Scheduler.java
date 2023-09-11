@@ -28,8 +28,8 @@ public class Scheduler {
     // https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/support/CronExpression.html
     // 간략하게는 초, 분, 시, 일, 월, 주 순서
 
-    //@Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시로 설정할 경우.
-    @Scheduled(cron = "*/10 * * * * *") // 테스트용으로 짧게 우선 작동하는지 보고 실제 프로젝트는 위처럼, -> 실행시켜보면 자동 업데이트가 주기적으로 작동함.
+    @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시로 설정할 경우.
+    //@Scheduled(cron = "*/10 * * * * *") // 테스트용으로 짧게 우선 작동하는지 보고 실제 프로젝트는 위처럼, -> 실행시켜보면 자동 업데이트가 주기적으로 작동함.
     public void updatePrice() throws InterruptedException {
         log.info("가격 업데이트 실행");
         List<Product> productList = productRepository.findAll(); // 스케줄러에 따라 자동 검색해야 할 대상 모두 검색
