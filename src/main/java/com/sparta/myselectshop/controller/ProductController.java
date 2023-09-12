@@ -29,7 +29,7 @@ public class ProductController {
         return productService.updateProduct(id, requestDto);
     }
 
-    // READ
+    // READ with paging
     @GetMapping("/products")
     public Page<ProductResponseDto> getProducts(
             @RequestParam("page") int page,
@@ -54,6 +54,7 @@ public class ProductController {
         return productService.getProducts();
     }
 
+    // PRODUCT -> FOLDER - CREATE
     @PostMapping("/products/{productId}/folder")
     public void addFolder(
             @PathVariable Long productId,        //ProductId 패스로 받아오고,
@@ -61,5 +62,25 @@ public class ProductController {
             @AuthenticationPrincipal UserDetailsImpl userDetails    // 상품과 그 폴더가 그 로그인한 유저의 것인지 확인이 필요하다. 로그인정보도 받아야 함.
     ){
         productService.addFolder(productId, folderId, userDetails.getUser());
+    }
+
+    // PRODUCT -> FOLDER - READ with paging
+    @GetMapping("/folders/{folderId}/products")
+    public Page<ProductResponseDto> getProductsInFolder(
+            @PathVariable Long folderId, //ProductId 패스로 받아오고,
+            @RequestParam("page") int page, //paging 처리들 받아오고,
+            @RequestParam("size") int size,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("isAsc") boolean isAsc,
+            @AuthenticationPrincipal UserDetailsImpl userDetails //로그인한 유저 정보까지 받아오고
+    ){
+        return productService.getProductsInFolder(
+                folderId,
+                page-1, //index랑은 페이지는 다르니까
+                size,
+                sortBy,
+                isAsc,
+                userDetails.getUser()
+        );
     }
 }

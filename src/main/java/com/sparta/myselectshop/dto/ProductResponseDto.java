@@ -31,7 +31,7 @@ public class ProductResponseDto {
         this.lprice = product.getLprice();
         this.myprice = product.getMyprice();
 
-        for (ProductFolder productFolder : product.getProductFoldersList()) {//product폴더에 들어있는 폴더 정보를 위 변수에 넣어줘야한다.
+        for (ProductFolder productFolder : product.getProductFolderList()) {//product폴더에 들어있는 폴더 정보를 위 변수에 넣어줘야한다.
             productFolderList.add(new FolderResponseDto(productFolder.getFolder())); //product에 우리가 연결한 productFolderList 를 가지고 온다. 거기에 folder정보가 있다.(양방향해둬서 가져올수있지) 그것을 FolderResponseDto로 변환하면서, 위 List에 그 정보를 넣는다.
         }
     }

@@ -124,4 +124,20 @@ public class ProductService {
         productFolderRepository.save(new ProductFolder(product, folder)); //Entity객체 하나는 == DB의 Row하나다. -> product, folder로 객체를만들어야 된다(생성자로)
         //Run으로 테스트해보면, 로그인한 상품을 폴더에 추가하는부분을 눌러보면, 유저가생성한 폴더의 갯수만큼 드롭다운이 나타나며,
     }
+
+    // 특정 사용자가 폴더에 등록한 상품을 폴더별로 조회하는 기능
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDto> getProductsInFolder(Long folderId, int page, int size, String sortBy, boolean isAsc, User user) {
+        // 정렬, 페이징 처리위한 페이저블객체 -> 나중에 메소드로 뺴자 중복됨.
+        // 페이징 처리
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 해당 폴더에 등록된 상품을 가져옵니다.
+        Page<Product> products = productRepository.findAllByUserAndProductFolderList_FolderId(user, folderId, pageable);
+
+        Page<ProductResponseDto> responseDtoList = products.map(ProductResponseDto::new);
+        return responseDtoList;
+    }
 }
