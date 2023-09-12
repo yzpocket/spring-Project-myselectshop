@@ -87,8 +87,8 @@ public class UserController {
         String token = kakaoService.kakaoLogin(code);
 
         // Cookie 생성 및 직접 브라우저에 Set
-        //Cookie cookie = new Cookie(JwtUtil.AUTHORIZATION_HEADER, token.substring(7)); //substring(7)한이유?
-        Cookie cookie = new Cookie(JwtUtil.AUTHORIZATION_HEADER, token);
+        //Cookie cookie = new Cookie(JwtUtil.AUTHORIZATION_HEADER, token.substring(7)); //substring(7)한이유? "Bearer " 문자를 없에기위해서. URL인코딩디코딩 해도되는데 복잡해지기때문에 여기선 이렇게 구현
+        Cookie cookie = new Cookie(JwtUtil.AUTHORIZATION_HEADER, token.substring(7));
         cookie.setPath("/");
         response.addCookie(cookie);
 

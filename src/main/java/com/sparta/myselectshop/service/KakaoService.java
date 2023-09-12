@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sparta.myselectshop.dto.KakaoUserInfoDto;
+import com.sparta.myselectshop.entity.User;
+import com.sparta.myselectshop.entity.UserRoleEnum;
 import com.sparta.myselectshop.jwt.JwtUtil;
 import com.sparta.myselectshop.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.UUID;
 
 @Slf4j(topic = "KAKAO Login")
 @Service
@@ -38,7 +42,13 @@ public class KakaoService {
         // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
         KakaoUserInfoDto kakaoUserInfo = getKakaoUserInfo(accessToken);
 
-        return null;
+        // 3. 필요시에 회원가입
+        User kakaoUser = registerKakaoUserIfNeeded(kakaoUserInfo);
+
+        // 4. JWT 토큰 반환
+        String createToken = jwtUtil.createToken(kakaoUser.getUsername(), kakaoUser.getRole());
+
+        return createToken;
     }
 
     //[1] 액세스 토큰 요청과 받기 메소드
@@ -114,30 +124,40 @@ public class KakaoService {
         String email = jsonNode.get("kakao_account")
                 .get("email").asText();
 
-        //{
-        //  "id": 1632335751,
-        //  "properties": {
-        //    "nickname": "르탄이",
-        //    "profile_image": "http://k.kakaocdn.net/...jpg",
-        //    "thumbnail_image": "http://k.kakaocdn.net/...jpg"
-        //  },
-        //  "kakao_account": {
-        //    "profile_needs_agreement": false,
-        //    "profile": {
-        //      "nickname": "르탄이",
-        //      "thumbnail_image_url": "http://k.kakaocdn.net/...jpg",
-        //      "profile_image_url": "http://k.kakaocdn.net/...jpg"
-        //    },
-        //    "has_email": true,
-        //    "email_needs_agreement": false,
-        //    "is_email_valid": true,
-        //    "is_email_verified": true,
-        //    "email": "letan@sparta.com"
-        //  }
-        //}
         //들어오는 JSON형태 문자열이 위 같은 형태라서 id는 바로가져올수있고 마치 2차원배열처럼 폴더 형식이라 받아오는 폴더 이동하는 것이 달랐던것.
         log.info("카카오 사용자 정보: " + id + ", " + nickname + ", " + email);
         return new KakaoUserInfoDto(id, nickname, email);
     }
 
+    //
+    private User registerKakaoUserIfNeeded(KakaoUserInfoDto kakaoUserInfo) {
+        // DB 에 중복된 Kakao Id 가 있는지 확인 //한번이라도 카카오로 회원가입을 한적있는지 체크
+        Long kakaoId = kakaoUserInfo.getId();
+        User kakaoUser = userRepository.findByKakaoId(kakaoId).orElse(null);
+
+        if (kakaoUser == null) { //없다면, 카카오회원가입을 시켜주자.
+            // 카카오 사용자 email 동일한 email 가진 회원이 있는지 확인
+            String kakaoEmail = kakaoUserInfo.getEmail();
+            User sameEmailUser = userRepository.findByEmail(kakaoEmail).orElse(null);
+            if (sameEmailUser != null) {//email과 카카오로그인email이 같다면
+                kakaoUser = sameEmailUser;
+                // 기존 회원정보에 카카오 Id 추가로 다음 로그인에는 이 로직을 수행하지 않도록.
+                kakaoUser = kakaoUser.kakaoIdUpdate(kakaoId);
+            } else { //여긴 진짜 최초 로그인 신규회원
+                // 신규 회원가입
+                // password: random UUID
+                String password = UUID.randomUUID().toString();
+                String encodedPassword = passwordEncoder.encode(password);
+
+                // email: kakao email
+                String email = kakaoUserInfo.getEmail();
+
+                kakaoUser = new User(kakaoUserInfo.getNickname(), encodedPassword, email, UserRoleEnum.USER, kakaoId);
+            }
+            //한번도 가입한적 없으면 바로 카카오유저 저장, 가입한적 있으면 위 수행후 카카오유저 저장
+            //여기서는 상황에 따라서 update또는 create라 @Transaction을 구현하는 것보다 save()메소드를 직접 쓰는게 낫다?
+            userRepository.save(kakaoUser);
+        }
+        return kakaoUser;
+    }
 }
