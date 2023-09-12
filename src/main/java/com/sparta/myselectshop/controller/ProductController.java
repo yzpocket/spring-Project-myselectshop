@@ -53,4 +53,13 @@ public class ProductController {
     public List<ProductResponseDto> getAllProducts(){
         return productService.getProducts();
     }
+
+    @PostMapping("/products/{productId}/folder")
+    public void addFolder(
+            @PathVariable Long productId,        //ProductId 패스로 받아오고,
+            @RequestParam Long folderId,         //폼형식으로 folder의 id가 넘어오니 RequestParam,
+            @AuthenticationPrincipal UserDetailsImpl userDetails    // 상품과 그 폴더가 그 로그인한 유저의 것인지 확인이 필요하다. 로그인정보도 받아야 함.
+    ){
+        productService.addFolder(productId, folderId, userDetails.getUser());
+    }
 }

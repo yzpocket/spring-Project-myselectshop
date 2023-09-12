@@ -32,7 +32,7 @@ public class FolderService {
         folderRepository.saveAll(folderList);
     }
     // 로그인한 회원이 등록된 모든 폴더 조회
-    public List<FolderResponseDto> getFolders(User user) {    //폴더정보 ResponseDto에 담아서 반환할것임.
+    public List<FolderResponseDto> getFolders(User user) {    //폴더정보 ResponseDto에 담아서 반환할것임. //조건은 로그인한 유저임.
         List<Folder> folderList = folderRepository.findAllByUser(user);
         List<FolderResponseDto> responseDtoList = new ArrayList<>();
 
