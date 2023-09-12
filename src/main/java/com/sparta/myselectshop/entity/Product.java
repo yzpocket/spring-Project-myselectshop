@@ -51,6 +51,7 @@ public class Product extends Timestamped {
 
     // 상품:중간테이블 = 1:N (N:M을 중간테이블로 풀어내는 과정에 양방향을 설정하기 위함)
     @OneToMany(mappedBy = "product") //<- 폴더는 상품정보가 필요하기 때문
+    //<- 이부분 지금 기본 FetchType이 LAZY 상태이다. 즉시, 지연 어떤것을 할 지 선택해야 한다.
     private List<ProductFolder> productFoldersList = new ArrayList<>();
 
     public Product(ProductRequestDto requestDto, User user) {

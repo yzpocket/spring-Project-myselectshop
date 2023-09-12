@@ -50,6 +50,9 @@ public class ProductService {
     //SHIFTSHIFT 단축키로 프로젝트 전체검색가능
     //ctrl+R 단축키로 Run
 
+    // 지금 여기에 지연로딩에 대한 처리(@Transactional 환경)가 구현되어있지 않다. 그럼 정상적으로 작동하지 않을 것이라는것.
+    // 이처럼 product와 productFolder의 레이지로딩을 정상 작동하게 하려면 여기에서 Transactional환경이 필요하다.
+    @Transactional(readOnly = true) // 그런데 조회하는 용도기 때문에, READONLY 옵션을 사용해보자.
     public Page<ProductResponseDto> getProducts(User user, int page, int size, String sortBy, boolean isAsc) {
         // 정렬, 페이징 처리위한 페이저블객체
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
